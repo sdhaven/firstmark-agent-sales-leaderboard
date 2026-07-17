@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FirstMark Sales Pace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#f7f5f0;
+    --panel:#ffffff;
+    --panel-hi:#eef0f4;
+    --line:#dde1e8;
+    --text:#1c2430;
+    --muted:#69748a;
+    --gold:#a97e2f;
+    --green:#2f8f5b;
+    --amber:#b8791f;
+    --red:#b03d31;
+    --red-soft:rgba(176,61,49,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(169,126,47,0.07), transparent 60%),
+      var(--ink);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:32px 24px 80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    flex-wrap:wrap;gap:16px;
+    margin-bottom:24px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:20px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--gold);margin:0 0 6px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:28px;font-weight:700;margin:0;letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--muted);font-size:13px;margin-top:6px;}
+  .controls{display:flex;gap:10px;align-items:center;}
+  .icon-btn{
+    width:36px;height:36px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+  }
+  .icon-btn:hover{color:var(--text);border-color:#3a4459;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap;}
+  .tab{
+    padding:10px 18px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-family:'Space Grotesk',sans-serif;
+    font-weight:600;font-size:13.5px;cursor:pointer;
+  }
+  .tab.active{background:var(--gold);color:#ffffff;border-color:var(--gold);}
+
+  .stat-strip{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+    background:var(--line);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;margin-bottom:24px;
+  }
+  .stat{background:var(--panel);padding:16px 18px;}
+  .stat-label{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+  }
+  .stat-value{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:700;}
+  .stat-value.gold{color:var(--gold);}
+
+  .table-scroll{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    overflow-x:auto;box-shadow:0 1px 3px rgba(28,36,48,0.06);
+  }
+  table{border-collapse:collapse;width:100%;min-width:920px;}
+  thead th{
+    text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);
+    padding:14px 14px;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{
+    padding:12px 14px;border-bottom:1px solid var(--line);
+    text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+    color:var(--text);white-space:nowrap;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td:first-child{
+    text-align:left;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;
+  }
+  td.month-cell{color:var(--muted);}
+  td.mtd-cell{color:var(--text);font-weight:600;}
+  td.ytd-cell{color:var(--gold);font-weight:600;}
+  td.goal-cell{color:var(--muted);}
+  .pace-cell{min-width:150px;}
+  .pace-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+  .pace-pct{font-weight:700;font-size:13.5px;}
+  .pace-pct.green{color:var(--green);}
+  .pace-pct.amber{color:var(--amber);}
+  .pace-pct.red{color:var(--red);}
+  .pace-track{width:130px;height:8px;background:var(--panel-hi);border-radius:5px;overflow:hidden;}
+  .pace-fill{height:100%;border-radius:5px;}
+  .pace-fill.green{background:var(--green);}
+  .pace-fill.amber{background:var(--amber);}
+  .pace-fill.red{background:var(--red);}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty h3{color:var(--text);font-family:'Space Grotesk',sans-serif;margin-bottom:8px;}
+  .footer-note{text-align:center;color:var(--muted);font-size:11.5px;margin-top:20px;font-family:'IBM Plex Mono',monospace;}
+  .unassigned-note{
+    margin-top:16px;padding:14px 18px;background:var(--red-soft);border:1px solid var(--red);
+    border-radius:10px;font-size:12.5px;color:var(--text);
+  }
+  .unassigned-note b{color:var(--red);}
+
+  .recon{
+    margin-top:16px;padding:14px 18px;border-radius:10px;font-size:12px;
+    font-family:'IBM Plex Mono',monospace;display:flex;flex-wrap:wrap;gap:18px;align-items:center;
+    border:1px solid var(--line);background:var(--panel);
+  }
+  .recon.ok{border-color:var(--green);}
+  .recon.bad{border-color:var(--red);background:var(--red-soft);}
+  .recon-item{color:var(--muted);}
+  .recon-item b{color:var(--text);}
+  .recon-flag{font-weight:700;}
+  .recon.ok .recon-flag{color:var(--green);}
+  .recon.bad .recon-flag{color:var(--red);}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(6,9,14,0.7);display:none;align-items:center;justify-content:center;z-index:10;padding:20px;}
+  .modal-backdrop.show{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px;max-width:480px;width:100%;}
+  .modal h3{font-family:'Space Grotesk',sans-serif;margin:0 0 6px;}
+  .modal p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.03em;}
+  .field input{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  .field input:focus{outline:none;border-color:var(--gold);}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+  .btn{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;}
+  .btn-primary{background:var(--gold);color:#ffffff;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);}
+
+  .legend{
+    display:flex;flex-wrap:wrap;gap:18px;align-items:center;
+    padding:12px 18px;margin-bottom:20px;border:1px solid var(--line);
+    border-radius:10px;background:var(--panel);font-size:12px;color:var(--muted);
+  }
+  .legend b{color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;}
+  .legend-dot{display:inline-flex;align-items:center;gap:6px;}
+  .legend-swatch{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .legend-swatch.green{background:var(--green);}
+  .legend-swatch.amber{background:var(--amber);}
+  .legend-swatch.red{background:var(--red);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">FirstMark Insurance Group</p>
+      <h1>Sales Pace</h1>
+      <p class="subtitle" id="lastUpdated">Not loaded yet</p>
+    </div>
+    <div class="controls">
+      <button class="icon-btn" id="refreshBtn" title="Refresh data">&#8635;</button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">&#9881;</button>
+    </div>
+  </header>
+
+  <div class="legend">
+    <b>Pace status</b>
+    <span class="legend-dot"><span class="legend-swatch green"></span>Green — at or above 95% of where they should be for this point in the year</span>
+    <span class="legend-dot"><span class="legend-swatch amber"></span>Amber — 75–95% of expected pace</span>
+    <span class="legend-dot"><span class="legend-swatch red"></span>Red — below 75% of expected pace</span>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="stat-strip" id="statStrip"></div>
+  <div class="table-scroll" id="tableWrap">
+    <div class="empty">
+      <h3>Not connected yet</h3>
+      <p>Click the gear icon above and paste in your published RawData CSV link.</p>
+    </div>
+  </div>
+  <div id="unassignedWrap"></div>
+  <div id="reconWrap"></div>
+  <p class="footer-note" id="rowCount"></p>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>Connect your Google Sheet</h3>
+    <p>In your Sheet: File &rarr; Share &rarr; Publish to web &rarr; choose the PublicFeed tab &rarr; format CSV &rarr; Publish. Paste the link below.</p>
+    <div class="field">
+      <label>PublicFeed tab CSV URL</label>
+      <input type="text" id="rawUrlInput" placeholder="https://docs.google.com/.../pub?output=csv">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalSave">Save &amp; load</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GROUPS = {
+  promo: { label: 'Promo Agents', agents: [
+    { name: 'Chase Davis', goal: 800000 },
+    { name: 'Nolan Welfringer', goal: 650000 },
+    { name: 'Levi Chambers', goal: 400000 },
+    { name: 'Joe Warren', goal: 500000 },
+    { name: 'John Korpi', goal: 800000 },
+    { name: 'Mikey Porter', goal: 300000 },
+  ]},
+  commercial: { label: 'Commercial Agents', agents: [
+    { name: 'Bradley Stampfli', goal: 800000 },
+    { name: 'Scott Wooster', goal: 300000 },
+    { name: 'Ryan Fagan', goal: 200000 },
+  ]},
+  general: { label: 'General Agents', agents: [
+    { name: 'Rick Harrison', goal: 400000 },
+    { name: 'Mike Donnelly', goal: 400000 },
+    { name: 'Erin Casey', goal: 200000 },
+    { name: 'Gail Welfringer', goal: 360000 },
+    { name: 'Amanda Higginbotham', goal: 200000 },
+    { name: 'Rob Balderas', goal: 400000 },
+    { name: 'Matthew Smith', goal: 240000 },
+    { name: 'John Applegate', goal: 200000 },
+    { name: 'Dan Fortune', goal: 360000 },
+    { name: 'Ken Meyer', goal: 250000 },
+    { name: 'Nick Vlahovich', goal: 200000 },
+  ]},
+  pcg: { label: 'PCG Agents', agents: [
+    { name: 'Aaron Anain', goal: 200000 },
+    { name: 'Jordan Taylor', goal: 200000 },
+    { name: 'Tim Thoreen', goal: 200000 },
+    { name: 'Alessio Clark', goal: 200000 },
+  ]},
+};
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let activeGroup = 'promo';
+let monthlyTotals = {};
+let unassigned = {};
+let currentMonthIdx = new Date().getMonth();
+let recon = null;
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field+='"'; i++; } else { inQuotes = false; }
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n' || c === '\r'){
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field='';
+        if(row.length>1 || row[0]!=='') rows.push(row);
+        row = [];
+      } else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+function money(str){
+  if(!str) return 0;
+  const n = parseFloat(String(str).replace(/[^0-9.\-]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+function parseDate(str){
+  if(!str) return null;
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+async function fetchCSV(url){
+  const bust = (url.includes('?') ? '&' : '?') + 'cachebust=' + Date.now();
+  const res = await fetch(url + bust);
+  if(!res.ok) throw new Error('Fetch failed: ' + res.status);
+  return parseCSV(await res.text());
+}
+function normalizeName(name){
+  return (name || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+function nameToGroupAgent(name){
+  const target = normalizeName(name);
+  for(const key in GROUPS){
+    const found = GROUPS[key].agents.find(a => normalizeName(a.name) === target);
+    if(found) return {groupKey:key, agent:found};
+  }
+  return null;
+}
+
+async function loadData(){
+  const rawUrl = localStorage.getItem('sp_raw_url');
+  if(!rawUrl){ renderEmpty(); return; }
+  try{
+    const rawRows = await fetchCSV(rawUrl);
+    const now = new Date();
+    const curYear = now.getFullYear();
+    currentMonthIdx = now.getMonth();
+
+    monthlyTotals = {};
+    unassigned = {};
+    recon = {
+      totalCSV: 0, matchedCurYear: 0, unassignedCurYear: 0,
+      otherYears: 0, badRows: 0, totalDataRows: 0
+    };
+
+    for(let i=1;i<rawRows.length;i++){
+      const r = rawRows[i];
+      const agent = (r[0] || '').trim();
+      const dateClosed = parseDate(r[1]);
+      const premium = money(r[2]);
+
+      // skip fully blank trailing rows
+      if(!agent && !r[2]) continue;
+      recon.totalDataRows++;
+      recon.totalCSV += premium;
+
+      if(!agent || !dateClosed){
+        recon.badRows += premium;
+        continue;
+      }
+      if(dateClosed.getFullYear() !== curYear){
+        recon.otherYears += premium;
+        continue;
+      }
+
+      const match = nameToGroupAgent(agent);
+      if(!match){
+        unassigned[agent] = (unassigned[agent] || 0) + premium;
+        recon.unassignedCurYear += premium;
+        continue;
+      }
+      if(!monthlyTotals[agent]) monthlyTotals[agent] = new Array(12).fill(0);
+      monthlyTotals[agent][dateClosed.getMonth()] += premium;
+      recon.matchedCurYear += premium;
+    }
+
+    document.getElementById('lastUpdated').textContent =
+      'Updated ' + now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' at ' +
+      now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    document.getElementById('rowCount').textContent = recon.totalDataRows + ' transactions loaded this year';
+
+    renderRecon();
+    render();
+  } catch(err){
+    console.error(err);
+    renderError(err.message);
+  }
+}
+
+function renderTabs(){
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = Object.keys(GROUPS).map(key => `
+    <button class="tab ${key===activeGroup?'active':''}" data-group="${key}">${GROUPS[key].label}</button>
+  `).join('');
+  tabs.querySelectorAll('.tab').forEach(btn => {
+    btn.onclick = () => { activeGroup = btn.dataset.group; render(); };
+  });
+}
+
+function daysElapsedRatio(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(),0,1);
+  const end = new Date(now.getFullYear()+1,0,1);
+  return (now - start) / (end - start);
+}
+function paceStatus(ytd, goal){
+  if(goal <= 0) return 'green';
+  const expected = goal * daysElapsedRatio();
+  if(expected <= 0) return 'green';
+  const ratio = ytd / expected;
+  if(ratio >= 0.95) return 'green';
+  if(ratio >= 0.75) return 'amber';
+  return 'red';
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+function fmt(n){ return '$' + Math.round(n).toLocaleString(); }
+
+function render(){
+  renderTabs();
+  const group = GROUPS[activeGroup];
+  const tableWrap = document.getElementById('tableWrap');
+  const statStrip = document.getElementById('statStrip');
+
+  const rows = group.agents.map(a => {
+    const months = monthlyTotals[a.name] || new Array(12).fill(0);
+    const ytd = months.slice(0, currentMonthIdx+1).reduce((s,v)=>s+v,0);
+    const pctGoal = a.goal > 0 ? ytd / a.goal : 0;
+    const status = paceStatus(ytd, a.goal);
+    return { ...a, months, ytd, pctGoal, status };
+  }).sort((a,b) => b.pctGoal - a.pctGoal);
+
+  const teamYtd = rows.reduce((s,a)=>s+a.ytd,0);
+  const teamGoal = rows.reduce((s,a)=>s+a.goal,0);
+  const teamPct = teamGoal>0 ? teamYtd/teamGoal : 0;
+  const onPace = rows.filter(a => a.status === 'green').length;
+
+  statStrip.innerHTML = `
+    <div class="stat"><div class="stat-label">${group.label} YTD</div><div class="stat-value">${fmt(teamYtd)}</div></div>
+    <div class="stat"><div class="stat-label">Group Goal</div><div class="stat-value">${fmt(teamGoal)}</div></div>
+    <div class="stat"><div class="stat-label">% to Goal</div><div class="stat-value gold">${(teamPct*100).toFixed(0)}%</div></div>
+    <div class="stat"><div class="stat-label">On Pace</div><div class="stat-value">${onPace} / ${rows.length}</div></div>
+  `;
+
+  const monthHeaders = [];
+  for(let m=0;m<=currentMonthIdx;m++){
+    monthHeaders.push(m===currentMonthIdx ? MONTH_NAMES[m]+' (MTD)' : MONTH_NAMES[m]);
+  }
+
+  const thead = `<thead><tr>
+    <th>Agent</th>
+    ${monthHeaders.map(h=>`<th>${h}</th>`).join('')}
+    <th>YTD</th>
+    <th>Goal</th>
+    <th>% to Goal</th>
+  </tr></thead>`;
+
+  const tbody = `<tbody>${rows.map(a => `
+    <tr>
+      <td>${escapeHtml(a.name)}</td>
+      ${a.months.slice(0,currentMonthIdx+1).map((v,idx) => `<td class="${idx===currentMonthIdx?'mtd-cell':'month-cell'}">${fmt(v)}</td>`).join('')}
+      <td class="ytd-cell">${fmt(a.ytd)}</td>
+      <td class="goal-cell">${fmt(a.goal)}</td>
+      <td class="pace-cell">
+        <div class="pace-wrap">
+          <div class="pace-pct ${a.status}">${(a.pctGoal*100).toFixed(0)}%</div>
+          <div class="pace-track"><div class="pace-fill ${a.status}" style="width:${Math.min(a.pctGoal,1)*100}%"></div></div>
+        </div>
+      </td>
+    </tr>
+  `).join('')}</tbody>`;
+
+  tableWrap.innerHTML = `<table>${thead}${tbody}</table>`;
+
+  const unassignedNames = Object.keys(unassigned);
+  const unassignedWrap = document.getElementById('unassignedWrap');
+  if(unassignedNames.length){
+    unassignedWrap.innerHTML = `<div class="unassigned-note"><b>Unassigned:</b> ${unassignedNames.map(n => escapeHtml(n)+' ('+fmt(unassigned[n])+')').join(', ')} — these names in the CSV don't match anyone in the four groups. Check for typos or a producer who needs to be added.</div>`;
+  } else {
+    unassignedWrap.innerHTML = '';
+  }
+}
+
+function renderRecon(){
+  const wrap = document.getElementById('reconWrap');
+  if(!recon){ wrap.innerHTML = ''; return; }
+  const rebuilt = recon.matchedCurYear + recon.unassignedCurYear + recon.otherYears + recon.badRows;
+  const diff = Math.abs(rebuilt - recon.totalCSV);
+  const ok = diff < 0.01;
+  wrap.innerHTML = `
+    <div class="recon ${ok?'ok':'bad'}">
+      <span class="recon-flag">${ok ? '✓ Reconciled' : '⚠ Mismatch'}</span>
+      <span class="recon-item">Total in CSV: <b>${fmt(recon.totalCSV)}</b></span>
+      <span class="recon-item">Matched this year: <b>${fmt(recon.matchedCurYear)}</b></span>
+      <span class="recon-item">Unassigned: <b>${fmt(recon.unassignedCurYear)}</b></span>
+      <span class="recon-item">Other years: <b>${fmt(recon.otherYears)}</b></span>
+      <span class="recon-item">Blank name / bad date: <b>${fmt(recon.badRows)}</b></span>
+      ${!ok ? `<span class="recon-item">Difference: <b>${fmt(diff)}</b></span>` : ''}
+    </div>`;
+}
+
+function renderEmpty(){
+  document.getElementById('tabs').innerHTML = '';
+  document.getElementById('statStrip').innerHTML = '';
+  document.getElementById('reconWrap').innerHTML = '';
+  document.getElementById('tableWrap').innerHTML = `
+    <div class="empty"><h3>Not connected yet</h3><p>Click the gear icon above and paste in your published RawData CSV link.</p></div>`;
+}
+function renderError(msg){
+  document.getElementById('reconWrap').innerHTML = '';
+  document.getElementById('tableWrap').innerHTML = `
+    <div class="empty"><h3>Couldn't load data</h3><p>${escapeHtml(msg)}<br>Check that the link is published as CSV and reachable.</p></div>`;
+}
+
+document.getElementById('refreshBtn').onclick = loadData;
+const modal = document.getElementById('modalBackdrop');
+document.getElementById('settingsBtn').onclick = () => {
+  document.getElementById('rawUrlInput').value = localStorage.getItem('sp_raw_url') || '';
+  modal.classList.add('show');
+};
+document.getElementById('modalCancel').onclick = () => modal.classList.remove('show');
+document.getElementById('modalSave').onclick = () => {
+  const raw = document.getElementById('rawUrlInput').value.trim();
+  if(raw) localStorage.setItem('sp_raw_url', raw);
+  modal.classList.remove('show');
+  loadData();
+};
+
+loadData();
+</script>
+</body>
+</html>
